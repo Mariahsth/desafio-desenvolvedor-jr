@@ -11,9 +11,9 @@ app.use(cors());
 app.use(express.json());
 
 
-// if (!fs.existsSync(DATA_FILE)) {
-//     fs.writeFileSync(DATA_FILE, JSON.stringify([]));
-// }
+if (!fs.existsSync(DATA_FILE)) {
+    fs.writeFileSync(DATA_FILE, JSON.stringify([]));
+}
 
 // GET - Listar tarefas
 app.get('/api/tasks', (req, res) => {
