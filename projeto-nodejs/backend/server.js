@@ -42,7 +42,7 @@ app.post('/api/tasks', (req, res) => {
         const tasks = JSON.parse(data);
         
         const newTask = {
-            id: Date.now(),
+            id: Date.now().toString(),
             title,
             completed: false
         };
@@ -62,6 +62,7 @@ app.put('/api/tasks/:id', (req, res) => {
     console.log(`PUT /api/tasks/${req.params.id} chamado com body:`, req.body);
     try {
         const taskId = req.params.id;
+
         const { completed } = req.body;
         
         const data = fs.readFileSync(DATA_FILE, 'utf8');
@@ -89,6 +90,7 @@ app.delete('/api/tasks/:id', (req, res) => {
     console.log(`DELETE /api/tasks/${req.params.id} chamado`);
     try {
         const taskId = req.params.id;
+
         
         const data = fs.readFileSync(DATA_FILE, 'utf8');
         const tasks = JSON.parse(data);
