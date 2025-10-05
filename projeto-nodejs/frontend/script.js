@@ -21,25 +21,46 @@ async function loadTasks() {
 
 async function addTask() {
     const taskInput = document.getElementById('taskInput');
+    const dueDateInput = document.getElementById('dueDateInput');
     const title = taskInput.value.trim();
-    
+    const dueDate = dueDateInput.value;
+
     if (!title) {
         alert('Digite uma tarefa!');
         return;
     }
-    
+
+    // validação de data antiga
+    if (dueDate) {
+        const today = new Date();
+        const selected = new Date(dueDate);
+
+        // zerar horário pra comparar só datas
+        today.setHours(0, 0, 0, 0);
+        selected.setHours(0, 0, 0, 0);
+
+        if (selected < today) {
+            alert('A data de prazo não pode ser anterior a de hoje.');
+            return;
+        }
+    }
+
     try {
         const response = await fetch(`${API_URL}/tasks`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ title })
+            body: JSON.stringify({ title, dueDate })
         });
-        
+
         if (response.ok) {
             taskInput.value = '';
+            dueDateInput.value = '';
             loadTasks();
+        } else {
+            const error = await response.json();
+            alert(error.error || 'Erro ao adicionar tarefa');
         }
     } catch (error) {
         alert('Erro ao adicionar tarefa');
@@ -87,18 +108,24 @@ function displayTasks(tasks) {
         tasksList.innerHTML = '<li style="text-align: center; color: #666;">Nenhuma tarefa</li>';
         return;
     }
-    
+
     tasksList.innerHTML = tasks.map(task => `
         <li class="task-item ${task.completed ? 'completed' : ''}">
             <input type="checkbox" 
                    ${task.completed ? 'checked' : ''} 
-                   onchange="toggleTask(${task.id}, ${task.completed})">
+                   onchange="toggleTask('${task.id}', ${task.completed})">
             <span class="task-text">${task.title}</span>
+            ${task.dueDate ? `<span class="due-date">${formatDate(task.dueDate)}</span>` : ''}
             <div class="task-actions">
-                <button class="btn-danger btn-small" onclick="deleteTask(${task.id})">
+                <button class="btn-danger btn-small" onclick="deleteTask('${task.id}')">
                     Excluir
                 </button>
             </div>
         </li>
     `).join('');
+}
+
+function formatDate(dateString) {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('pt-BR', { timeZone: 'UTC' });
 }

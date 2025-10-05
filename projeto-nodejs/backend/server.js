@@ -10,7 +10,6 @@ const DATA_FILE = path.join(__dirname, 'tasks.json');
 app.use(cors());
 app.use(express.json());
 
-
 if (!fs.existsSync(DATA_FILE)) {
     fs.writeFileSync(DATA_FILE, JSON.stringify([]));
 }
@@ -22,7 +21,7 @@ app.get('/api/tasks', (req, res) => {
         const tasks = JSON.parse(data);
         res.json(tasks);
     } catch (error) {
-        console.error('Erro no em buscar tarefas:', error);
+        console.error('Erro ao buscar tarefas:', error);
         res.status(500).json({ error: 'Erro ao carregar tarefas' });
     }
 });
@@ -31,11 +30,23 @@ app.get('/api/tasks', (req, res) => {
 app.post('/api/tasks', (req, res) => {
     console.log('POST /api/tasks chamado com body:', req.body);
     try {
-        const { title } = req.body;
+        const { title, dueDate } = req.body;
         
         if (!title) {
             console.warn('Tentativa de criar tarefa sem título');
             return res.status(400).json({ error: 'Título é obrigatório' });
+        }
+
+        if (dueDate) {
+            const today = new Date();
+            const selected = new Date(dueDate);
+
+            today.setHours(0, 0, 0, 0);
+            selected.setHours(0, 0, 0, 0);
+
+            if (selected < today) {
+                return res.status(400).json({ error: 'A data de prazo não pode ser anterior a hoje' });
+            }
         }
 
         const data = fs.readFileSync(DATA_FILE, 'utf8');
@@ -44,7 +55,8 @@ app.post('/api/tasks', (req, res) => {
         const newTask = {
             id: Date.now().toString(),
             title,
-            completed: false
+            completed: false,
+            dueDate: dueDate || null
         };
         
         tasks.push(newTask);
@@ -52,7 +64,7 @@ app.post('/api/tasks', (req, res) => {
         console.log('Tarefa criada:', newTask);
         res.status(201).json(newTask);
     } catch (error) {
-        console.error('Erro ao enviar tarefa:', error);
+        console.error('Erro ao criar tarefa:', error);
         res.status(500).json({ error: 'Erro ao criar tarefa' });
     }
 });
@@ -62,7 +74,6 @@ app.put('/api/tasks/:id', (req, res) => {
     console.log(`PUT /api/tasks/${req.params.id} chamado com body:`, req.body);
     try {
         const taskId = req.params.id;
-
         const { completed } = req.body;
         
         const data = fs.readFileSync(DATA_FILE, 'utf8');
@@ -90,7 +101,6 @@ app.delete('/api/tasks/:id', (req, res) => {
     console.log(`DELETE /api/tasks/${req.params.id} chamado`);
     try {
         const taskId = req.params.id;
-
         
         const data = fs.readFileSync(DATA_FILE, 'utf8');
         const tasks = JSON.parse(data);
