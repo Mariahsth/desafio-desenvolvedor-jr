@@ -25,10 +25,8 @@ app.get('/api/tasks', (req, res) => {
             if (!task.completed && task.dueDate) {
                 const today = new Date();
                 const due = new Date(task.dueDate);
-
                 today.setHours(0, 0, 0, 0);
                 due.setHours(0, 0, 0, 0);
-
                 task.status = due < today ? 'Atrasado' : 'Dentro do prazo';
             } else if (task.completed) {
                 task.status = 'Concluído';
@@ -59,10 +57,8 @@ app.post('/api/tasks', (req, res) => {
         if (dueDate) {
             const today = new Date();
             const selected = new Date(dueDate);
-
             today.setHours(0, 0, 0, 0);
             selected.setHours(0, 0, 0, 0);
-
             if (selected < today) {
                 return res.status(400).json({ error: 'A data de prazo não pode ser anterior a hoje' });
             }
@@ -94,11 +90,10 @@ app.put('/api/tasks/:id', (req, res) => {
     console.log(`PUT /api/tasks/${req.params.id} chamado com body:`, req.body);
     try {
         const taskId = req.params.id;
-        const { completed } = req.body;
+        const { completed, title, dueDate } = req.body;
 
         const data = fs.readFileSync(DATA_FILE, 'utf8');
         const tasks = JSON.parse(data);
-
         const taskIndex = tasks.findIndex(task => task.id === taskId);
 
         if (taskIndex === -1) {
@@ -106,8 +101,37 @@ app.put('/api/tasks/:id', (req, res) => {
             return res.status(404).json({ error: 'Tarefa não encontrada' });
         }
 
-        tasks[taskIndex].completed = completed;
-        tasks[taskIndex].status = completed ? 'Concluído' : (tasks[taskIndex].dueDate ? 'Dentro do prazo' : 'Sem prazo');
+        if (typeof completed === 'boolean') tasks[taskIndex].completed = completed;
+        if (title) tasks[taskIndex].title = title;
+
+        if (dueDate !== undefined) {
+            if (dueDate) {
+                const today = new Date();
+                const selected = new Date(dueDate);
+                today.setHours(0, 0, 0, 0);
+                selected.setHours(0, 0, 0, 0);
+                if (selected < today) {
+                    return res.status(400).json({ error: 'A data de prazo não pode ser anterior a hoje' });
+                }
+                tasks[taskIndex].dueDate = dueDate;
+            } else {
+                tasks[taskIndex].dueDate = null;
+            }
+        }
+
+        // Atualiza status
+        const t = tasks[taskIndex];
+        if (t.completed) {
+            t.status = 'Concluído';
+        } else if (t.dueDate) {
+            const today = new Date();
+            const due = new Date(t.dueDate);
+            today.setHours(0, 0, 0, 0);
+            due.setHours(0, 0, 0, 0);
+            t.status = due < today ? 'Atrasado' : 'Dentro do prazo';
+        } else {
+            t.status = 'Sem prazo';
+        }
 
         fs.writeFileSync(DATA_FILE, JSON.stringify(tasks, null, 2));
         console.log(`Tarefa ${taskId} atualizada para completed=${completed}`);
@@ -123,10 +147,8 @@ app.delete('/api/tasks/:id', (req, res) => {
     console.log(`DELETE /api/tasks/${req.params.id} chamado`);
     try {
         const taskId = req.params.id;
-
         const data = fs.readFileSync(DATA_FILE, 'utf8');
         const tasks = JSON.parse(data);
-
         const filteredTasks = tasks.filter(task => task.id !== taskId);
 
         if (filteredTasks.length === tasks.length) {
