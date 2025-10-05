@@ -30,12 +30,9 @@ async function addTask() {
         return;
     }
 
-    // validação de data antiga
     if (dueDate) {
         const today = new Date();
         const selected = new Date(dueDate);
-
-        // zerar horário pra comparar só datas
         today.setHours(0, 0, 0, 0);
         selected.setHours(0, 0, 0, 0);
 
@@ -109,20 +106,29 @@ function displayTasks(tasks) {
         return;
     }
 
-    tasksList.innerHTML = tasks.map(task => `
+    tasksList.innerHTML = tasks.map(task => {
+        const statusColor =
+            task.status === 'Atrasado' ? 'red' :
+            task.status === 'Dentro do prazo' ? 'green' :
+            task.status === 'Concluído' ? 'gray' :
+            '#666';
+
+        return `
         <li class="task-item ${task.completed ? 'completed' : ''}">
             <input type="checkbox" 
                    ${task.completed ? 'checked' : ''} 
                    onchange="toggleTask('${task.id}', ${task.completed})">
             <span class="task-text">${task.title}</span>
             ${task.dueDate ? `<span class="due-date">${formatDate(task.dueDate)}</span>` : ''}
+            <span class="status" style="color: ${statusColor}; font-weight: 600;">${task.status}</span>
             <div class="task-actions">
                 <button class="btn-danger btn-small" onclick="deleteTask('${task.id}')">
                     Excluir
                 </button>
             </div>
         </li>
-    `).join('');
+        `;
+    }).join('');
 }
 
 function formatDate(dateString) {

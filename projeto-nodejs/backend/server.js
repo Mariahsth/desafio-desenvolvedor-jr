@@ -19,7 +19,26 @@ app.get('/api/tasks', (req, res) => {
     try {
         const data = fs.readFileSync(DATA_FILE, 'utf8');
         const tasks = JSON.parse(data);
-        res.json(tasks);
+
+        // Atualiza status dinamicamente antes de enviar
+        const updatedTasks = tasks.map(task => {
+            if (!task.completed && task.dueDate) {
+                const today = new Date();
+                const due = new Date(task.dueDate);
+
+                today.setHours(0, 0, 0, 0);
+                due.setHours(0, 0, 0, 0);
+
+                task.status = due < today ? 'Atrasado' : 'Dentro do prazo';
+            } else if (task.completed) {
+                task.status = 'Concluído';
+            } else {
+                task.status = 'Sem prazo';
+            }
+            return task;
+        });
+
+        res.json(updatedTasks);
     } catch (error) {
         console.error('Erro ao buscar tarefas:', error);
         res.status(500).json({ error: 'Erro ao carregar tarefas' });
@@ -31,7 +50,7 @@ app.post('/api/tasks', (req, res) => {
     console.log('POST /api/tasks chamado com body:', req.body);
     try {
         const { title, dueDate } = req.body;
-        
+
         if (!title) {
             console.warn('Tentativa de criar tarefa sem título');
             return res.status(400).json({ error: 'Título é obrigatório' });
@@ -51,14 +70,15 @@ app.post('/api/tasks', (req, res) => {
 
         const data = fs.readFileSync(DATA_FILE, 'utf8');
         const tasks = JSON.parse(data);
-        
+
         const newTask = {
             id: Date.now().toString(),
             title,
             completed: false,
-            dueDate: dueDate || null
+            dueDate: dueDate || null,
+            status: dueDate ? 'Dentro do prazo' : 'Sem prazo'
         };
-        
+
         tasks.push(newTask);
         fs.writeFileSync(DATA_FILE, JSON.stringify(tasks, null, 2));
         console.log('Tarefa criada:', newTask);
@@ -75,18 +95,20 @@ app.put('/api/tasks/:id', (req, res) => {
     try {
         const taskId = req.params.id;
         const { completed } = req.body;
-        
+
         const data = fs.readFileSync(DATA_FILE, 'utf8');
         const tasks = JSON.parse(data);
-        
+
         const taskIndex = tasks.findIndex(task => task.id === taskId);
-        
+
         if (taskIndex === -1) {
             console.warn(`Tarefa ${taskId} não encontrada`);
             return res.status(404).json({ error: 'Tarefa não encontrada' });
         }
-        
+
         tasks[taskIndex].completed = completed;
+        tasks[taskIndex].status = completed ? 'Concluído' : (tasks[taskIndex].dueDate ? 'Dentro do prazo' : 'Sem prazo');
+
         fs.writeFileSync(DATA_FILE, JSON.stringify(tasks, null, 2));
         console.log(`Tarefa ${taskId} atualizada para completed=${completed}`);
         res.json(tasks[taskIndex]);
@@ -101,17 +123,17 @@ app.delete('/api/tasks/:id', (req, res) => {
     console.log(`DELETE /api/tasks/${req.params.id} chamado`);
     try {
         const taskId = req.params.id;
-        
+
         const data = fs.readFileSync(DATA_FILE, 'utf8');
         const tasks = JSON.parse(data);
-        
+
         const filteredTasks = tasks.filter(task => task.id !== taskId);
-        
+
         if (filteredTasks.length === tasks.length) {
             console.warn(`Tentativa de deletar tarefa inexistente: ${taskId}`);
             return res.status(404).json({ error: 'Tarefa não encontrada' });
         }
-        
+
         fs.writeFileSync(DATA_FILE, JSON.stringify(filteredTasks, null, 2));
         console.log(`Tarefa ${taskId} removida`);
         res.json({ message: 'Tarefa removida' });
