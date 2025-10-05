@@ -24,7 +24,8 @@ app.get('/api/tasks', (req, res) => {
         const updatedTasks = tasks.map(task => {
             if (!task.completed && task.dueDate) {
                 const today = new Date();
-                const due = new Date(task.dueDate);
+                const [year, month, day] = task.dueDate.split('-').map(Number);
+                const due = new Date(year, month - 1, day); 
                 today.setHours(0, 0, 0, 0);
                 due.setHours(0, 0, 0, 0);
                 task.status = due < today ? 'Atrasado' : 'Dentro do prazo';
@@ -56,9 +57,12 @@ app.post('/api/tasks', (req, res) => {
 
         if (dueDate) {
             const today = new Date();
-            const selected = new Date(dueDate);
+            const [year, month, day] = dueDate.split('-').map(Number);
+            const selected = new Date(year, month - 1, day); 
             today.setHours(0, 0, 0, 0);
             selected.setHours(0, 0, 0, 0);
+            console.log("Data de hoje:", today);
+            console.log("Data do prazo:", dueDate);
             if (selected < today) {
                 return res.status(400).json({ error: 'A data de prazo não pode ser anterior a hoje' });
             }
@@ -114,7 +118,8 @@ app.put('/api/tasks/:id', (req, res) => {
         if (dueDate !== undefined) {
             if (dueDate) {
                 const today = new Date();
-                const selected = new Date(dueDate);
+                const [year, month, day] = dueDate.split('-').map(Number);
+                const selected = new Date(year, month - 1, day); 
                 today.setHours(0, 0, 0, 0);
                 selected.setHours(0, 0, 0, 0);
                 if (selected < today) {
@@ -132,7 +137,8 @@ app.put('/api/tasks/:id', (req, res) => {
             t.status = 'Concluído';
         } else if (t.dueDate) {
             const today = new Date();
-            const due = new Date(t.dueDate);
+            const [year, month, day] = t.dueDate.split('-').map(Number);
+            const due = new Date(year, month - 1, day); 
             today.setHours(0, 0, 0, 0);
             due.setHours(0, 0, 0, 0);
             t.status = due < today ? 'Atrasado' : 'Dentro do prazo';
