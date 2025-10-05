@@ -1,5 +1,7 @@
 const API_URL = 'http://localhost:3000/api';
 
+let allTasks = []; 
+
 document.addEventListener('DOMContentLoaded', loadTasks);
 document.getElementById('taskInput').addEventListener('keypress', e => {
     if (e.key === 'Enter') addTask();
@@ -8,8 +10,8 @@ document.getElementById('taskInput').addEventListener('keypress', e => {
 async function loadTasks() {
     try {
         const response = await fetch(`${API_URL}/tasks`);
-        const tasks = await response.json();
-        displayTasks(tasks);
+        allTasks = await response.json();
+        displayTasks(allTasks);
     } catch (error) {
         console.error('Erro ao carregar tarefas:', error);
         alert('Erro ao carregar tarefas. Verifique se o servidor está rodando.');
@@ -43,7 +45,6 @@ async function addTask() {
             loadTasks();
         } else {
             const error = await response.json();
-            // 🔹 Verificação de atividade duplicada
             if (error.error === 'Já existe uma tarefa com esse título') {
                 alert('Não é possível criar tarefas com títulos repetidos!');
             } else {
@@ -59,12 +60,10 @@ async function toggleTask(id, completed) {
     try {
         const response = await fetch(`${API_URL}/tasks/${id}`, {
             method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ completed: !completed })
         });
-        
+
         if (response.ok) {
             loadTasks();
         }
@@ -188,4 +187,41 @@ function cancelEdit(id, originalTitle, originalDueDate) {
         dateSpan.style.display = '';
     }
     textSpan.parentElement.classList.remove('editing');
+}
+
+document.getElementById('searchTitle').addEventListener('input', () => {
+    applyFilters();
+});
+
+function clearFilters() {
+    document.getElementById('filterStart').value = '';
+    document.getElementById('filterEnd').value = '';
+    document.getElementById('searchTitle').value = '';
+    displayTasks(allTasks);
+}
+
+function applyFilters() {
+    const startDateValue = document.getElementById('filterStart').value;
+    const endDateValue = document.getElementById('filterEnd').value;
+    const searchTitleValue = document.getElementById('searchTitle').value.trim().toLowerCase();
+
+    let filtered = allTasks.filter(t => !t.completed); // somente tarefas ativas
+
+    if (startDateValue) {
+        const startDate = new Date(startDateValue);
+        startDate.setHours(0, 0, 0, 0);
+        filtered = filtered.filter(t => t.dueDate && new Date(t.dueDate) >= startDate);
+    }
+
+    if (endDateValue) {
+        const endDate = new Date(endDateValue);
+        endDate.setHours(23, 59, 59, 999);
+        filtered = filtered.filter(t => t.dueDate && new Date(t.dueDate) <= endDate);
+    }
+
+    if (searchTitleValue) {
+        filtered = filtered.filter(t => t.title.toLowerCase().includes(searchTitleValue));
+    }
+
+    displayTasks([...filtered, ...allTasks.filter(t => t.completed)]);
 }
