@@ -5,39 +5,75 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gerenciador de Tarefas</title>
     <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="container">
         <h1>Gerenciador de Tarefas</h1>
 
         <div class="add-task">
-            <label for="taskInput">Nova Tarefa:</label>
-            <input type="text" id="taskInput" placeholder="Digite uma nova tarefa...">
-            <label for="dueDateInput">Prazo de conclusão:</label>
-            <input type="date" id="dueDateInput" title="Prazo da tarefa">
-            <button onclick="addTask()">Adicionar</button>
+            <div class="input-group">
+                <label for="taskInput">Nova Tarefa:</label>
+                <input type="text" id="taskInput" placeholder="Ex: Estudar JavaScript..." class="input-full">
+            </div>
+            <div class="input-group-inline">
+                <div class="input-group">
+                    <label for="dueDateInput">Prazo de conclusão:</label>
+                    <input type="date" id="dueDateInput" title="Prazo da tarefa">
+                </div>
+                <button onclick="addTask()" class="btn-primary">Adicionar</button>
+            </div>
         </div>
 
-        <div class="filters">
-            <h3>Filtrar por:</h3>
-            <label for="filterStart">Data início:</label>
-            <input type="date" id="filterStart">
-            <label for="filterEnd">Data fim:</label>
-            <input type="date" id="filterEnd">
-            <label for="searchTitle">Pesquisar título:</label>
-            <input type="text" id="searchTitle" placeholder="Pesquisar por título...">
-            <button onclick="applyFilters()">Aplicar filtros</button>
-            <button onclick="clearFilters()">Limpar filtros</button>
-        </div>
-
-        <div class="task-list">
+        <div class="task-list-section">
             <h2>Ativas</h2>
-            <ul id="tasksListActive"></ul>
+            
+            <div class="filters">
+                <h3>Filtros de Pesquisa:</h3>
+                <div class="filter-controls">
+                    <div class="input-group filter-date-group">
+                        <label for="filterStart">Data início:</label>
+                        <input type="date" id="filterStart">
+                    </div>
+                    <div class="input-group filter-date-group">
+                        <label for="filterEnd">Data fim:</label>
+                        <input type="date" id="filterEnd">
+                    </div>
+                    <div class="input-group filter-title-group">
+                        <label for="searchTitle">Título:</label>
+                        <input type="text" id="searchTitle" placeholder="Pesquisar por título...">
+                    </div>
+                </div>
+                <div class="filter-actions">
+                    <button onclick="applyFilters()" class="btn-secondary">Aplicar filtros</button>
+                    <button onclick="clearFilters()" class="btn-secondary">Limpar filtros</button>
+                </div>
+            </div>
+            
+            <div class="tasks-scroll-wrapper">
+                <div class="task-header">
+                    <div class="col-checkbox">Concluído</div>
+                    <div class="col-title">Título</div>
+                    <div class="col-due-date">Prazo</div>
+                    <div class="col-status">Status</div>
+                    <div class="col-actions">Ações</div>
+                </div>
+                <ul id="tasksListActive" class="tasks-list-ul"></ul>
+            </div>
         </div>
 
-        <div class="task-list">
+        <div class="task-list-section">
             <h2>Concluídas</h2>
-            <ul id="tasksListCompleted"></ul>
+             <div class="tasks-scroll-wrapper">
+                 <div class="task-header">
+                    <div class="col-checkbox">Concluído</div>
+                    <div class="col-title">Título</div>
+                    <div class="col-due-date">Prazo</div>
+                    <div class="col-status">Status</div>
+                    <div class="col-actions">Ações</div>
+                </div>
+                <ul id="tasksListCompleted" class="tasks-list-ul"></ul>
+            </div>
         </div>
     </div>
 

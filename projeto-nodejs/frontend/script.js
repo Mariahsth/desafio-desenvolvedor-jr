@@ -25,10 +25,14 @@ async function addTask() {
     if (!title) return alert('Digite uma tarefa!');
 
     if (dueDate) {
+        const [year, month, day] = dueDate.split('-').map(Number);
+        const selected = new Date(year, month - 1, day); 
         const today = new Date();
-        const selected = new Date(dueDate);
         today.setHours(0, 0, 0, 0);
-        selected.setHours(0, 0, 0, 0);
+    
+        console.log("Data de hoje:", today);
+        console.log("Data do prazo:", selected);
+    
         if (selected < today) return alert('A data de prazo não pode ser anterior a de hoje.');
     }
 
@@ -115,14 +119,24 @@ function renderTaskItem(task) {
         task.status === 'Concluído' ? 'gray' : '#666';
 
     return `
-    <li class="task-item ${task.completed ? 'completed' : ''}">
-        <input type="checkbox" ${task.completed ? 'checked' : ''} onchange="toggleTask('${task.id}', ${task.completed})">
-        <span class="task-text" id="text-${task.id}">${task.title}</span>
-        ${task.dueDate ? `<span class="due-date" id="date-${task.id}">${formatDate(task.dueDate)}</span>` : ''}
-        <span class="status" style="color:${statusColor};font-weight:600;">${task.status}</span>
-        <div class="task-actions">
-            <button class="btn-edit btn-small" onclick="editTask('${task.id}', '${task.title.replace(/'/g, "\\'")}', '${task.dueDate || ''}')">Editar</button>
-            <button class="btn-danger btn-small" onclick="deleteTask('${task.id}')">Excluir</button>
+    <li class="task-item ${task.completed ? 'completed' : ''}"  data-id="${task.id}">
+        <div class="col-checkbox">
+            <input type="checkbox" ${task.completed ? 'checked' : ''} onchange="toggleTask('${task.id}', ${task.completed})">
+        </div>
+        <div class="col-title">
+            <span class="task-text" id="text-${task.id}">${task.title}</span>
+        </div>
+        <div class="col-due-date">
+            ${task.dueDate ? `<span class="due-date" id="date-${task.id}">${formatDate(task.dueDate)}</span>` : ''}
+        </div>
+        <div class="col-status">
+            <span class="status" style="color:${statusColor};font-weight:600;">${task.status}</span>
+        </div>
+        <div class="col-actions">
+            <div class="task-actions">
+                <button class="btn-edit btn-small" onclick="editTask('${task.id}', '${task.title.replace(/'/g, "\\'")}', '${task.dueDate || ''}')">Editar</button>
+                <button class="btn-danger btn-small" onclick="deleteTask('${task.id}')">Excluir</button>
+            </div>
         </div>
     </li>`;
 }
@@ -135,20 +149,23 @@ function formatDate(dateString) {
 function editTask(id, currentTitle, currentDueDate) {
     const textSpan = document.getElementById(`text-${id}`);
     const dateSpan = document.getElementById(`date-${id}`);
-    const li = textSpan.parentElement;
+    const li = textSpan.closest('.task-item'); 
 
     li.classList.add('editing');
 
     const dateValue = currentDueDate ? currentDueDate.split('T')[0] : '';
 
-    textSpan.innerHTML = `
-        <input type="text" id="edit-title-${id}" value="${currentTitle}" style="width:40%;">
+    const titleColumn = li.querySelector('.col-title');
+    titleColumn.innerHTML = `
+        <input type="text" id="edit-title-${id}" value="${currentTitle}">
         <input type="date" id="edit-date-${id}" value="${dateValue}">
-        <button onclick="saveEdit('${id}')">Salvar</button>
-        <button onclick="cancelEdit('${id}', '${currentTitle.replace(/'/g, "\\'")}', '${currentDueDate || ''}')">Cancelar</button>
+        <div class="task-actions">
+            <button class="btn-primary btn-small" onclick="saveEdit('${id}')">Salvar</button>
+            <button class="btn-secondary btn-small" onclick="cancelEdit(this, '${currentTitle.replace(/'/g, "\\'")}', '${currentDueDate || ''}')">Cancelar</button>
+
+        </div>
     `;
 
-    if (dateSpan) dateSpan.style.display = 'none';
 }
 
 async function saveEdit(id) {
@@ -159,9 +176,12 @@ async function saveEdit(id) {
 
     if (newDueDate) {
         const today = new Date();
-        const selected = new Date(newDueDate);
+        const [year, month, day] = newDueDate.split('-').map(Number);
+        const selected = new Date(year, month - 1, day); 
         today.setHours(0, 0, 0, 0);
         selected.setHours(0, 0, 0, 0);
+        console.log("Data de hoje:", today);
+        console.log("Data do prazo:", selected);
         if (selected < today) return alert('A data de prazo não pode ser anterior a de hoje.');
     }
 
@@ -178,15 +198,26 @@ async function saveEdit(id) {
     }
 }
 
-function cancelEdit(id, originalTitle, originalDueDate) {
-    const textSpan = document.getElementById(`text-${id}`);
-    const dateSpan = document.getElementById(`date-${id}`);
-    textSpan.textContent = originalTitle;
-    if (dateSpan) {
-        dateSpan.textContent = originalDueDate ? formatDate(originalDueDate) : '';
-        dateSpan.style.display = '';
+function cancelEdit(button, originalTitle, originalDueDate) {
+    const li = button.closest('.task-item'); 
+
+    const titleColumn = li.querySelector('.col-title');
+    titleColumn.innerHTML = `<span class="task-text" id="text-${li.dataset.id}">${originalTitle}</span>`;
+
+    const dateColumn = li.querySelector('.col-due-date');
+    if (dateColumn) {
+        dateColumn.innerHTML = originalDueDate ? `<span class="due-date" id="date-${li.dataset.id}">${formatDate(originalDueDate)}</span>` : '';
     }
-    textSpan.parentElement.classList.remove('editing');
+
+    const actionsColumn = li.querySelector('.col-actions');
+    actionsColumn.innerHTML = `
+        <div class="task-actions">
+            <button class="btn-edit btn-small" onclick="editTask('${li.dataset.id}', '${originalTitle.replace(/'/g, "\\'")}', '${originalDueDate || ''}')">Editar</button>
+            <button class="btn-danger btn-small" onclick="deleteTask('${li.dataset.id}')">Excluir</button>
+        </div>
+    `;
+
+    li.classList.remove('editing');
 }
 
 document.getElementById('searchTitle').addEventListener('input', () => {
@@ -205,7 +236,7 @@ function applyFilters() {
     const endDateValue = document.getElementById('filterEnd').value;
     const searchTitleValue = document.getElementById('searchTitle').value.trim().toLowerCase();
 
-    let filtered = allTasks.filter(t => !t.completed); // somente tarefas ativas
+    let filtered = allTasks.filter(t => !t.completed); 
 
     if (startDateValue) {
         const startDate = new Date(startDateValue);
