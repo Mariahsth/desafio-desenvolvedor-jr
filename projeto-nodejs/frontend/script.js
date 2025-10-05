@@ -90,30 +90,42 @@ async function deleteTask(id) {
 }
 
 function displayTasks(tasks) {
-    const tasksList = document.getElementById('tasksList');
-    if (tasks.length === 0) {
-        tasksList.innerHTML = '<li style="text-align:center;color:#666;">Nenhuma tarefa</li>';
-        return;
+    const tasksListActive = document.getElementById('tasksListActive');
+    const tasksListCompleted = document.getElementById('tasksListCompleted');
+
+    const activeTasks = tasks.filter(t => !t.completed);
+    const completedTasks = tasks.filter(t => t.completed);
+
+    if (activeTasks.length === 0) {
+        tasksListActive.innerHTML = '<li style="text-align:center;color:#666;">Nenhuma tarefa em andamento</li>';
+    } else {
+        tasksListActive.innerHTML = activeTasks.map(task => renderTaskItem(task)).join('');
     }
 
-    tasksList.innerHTML = tasks.map(task => {
-        const statusColor =
-            task.status === 'Atrasado' ? 'red' :
-            task.status === 'Dentro do prazo' ? 'green' :
-            task.status === 'Concluído' ? 'gray' : '#666';
+    if (completedTasks.length === 0) {
+        tasksListCompleted.innerHTML = '<li style="text-align:center;color:#666;">Nenhuma tarefa concluída</li>';
+    } else {
+        tasksListCompleted.innerHTML = completedTasks.map(task => renderTaskItem(task)).join('');
+    }
+}
 
-        return `
-        <li class="task-item ${task.completed ? 'completed' : ''}">
-            <input type="checkbox" ${task.completed ? 'checked' : ''} onchange="toggleTask('${task.id}', ${task.completed})">
-            <span class="task-text" id="text-${task.id}">${task.title}</span>
-            ${task.dueDate ? `<span class="due-date" id="date-${task.id}">${formatDate(task.dueDate)}</span>` : ''}
-            <span class="status" style="color:${statusColor};font-weight:600;">${task.status}</span>
-            <div class="task-actions">
-                <button class="btn-edit btn-small" onclick="editTask('${task.id}', '${task.title.replace(/'/g, "\\'")}', '${task.dueDate || ''}')">Editar</button>
-                <button class="btn-danger btn-small" onclick="deleteTask('${task.id}')">Excluir</button>
-            </div>
-        </li>`;
-    }).join('');
+function renderTaskItem(task) {
+    const statusColor =
+        task.status === 'Atrasado' ? 'red' :
+        task.status === 'Dentro do prazo' ? 'green' :
+        task.status === 'Concluído' ? 'gray' : '#666';
+
+    return `
+    <li class="task-item ${task.completed ? 'completed' : ''}">
+        <input type="checkbox" ${task.completed ? 'checked' : ''} onchange="toggleTask('${task.id}', ${task.completed})">
+        <span class="task-text" id="text-${task.id}">${task.title}</span>
+        ${task.dueDate ? `<span class="due-date" id="date-${task.id}">${formatDate(task.dueDate)}</span>` : ''}
+        <span class="status" style="color:${statusColor};font-weight:600;">${task.status}</span>
+        <div class="task-actions">
+            <button class="btn-edit btn-small" onclick="editTask('${task.id}', '${task.title.replace(/'/g, "\\'")}', '${task.dueDate || ''}')">Editar</button>
+            <button class="btn-danger btn-small" onclick="deleteTask('${task.id}')">Excluir</button>
+        </div>
+    </li>`;
 }
 
 function formatDate(dateString) {
