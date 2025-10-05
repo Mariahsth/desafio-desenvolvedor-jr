@@ -67,6 +67,13 @@ app.post('/api/tasks', (req, res) => {
         const data = fs.readFileSync(DATA_FILE, 'utf8');
         const tasks = JSON.parse(data);
 
+        // 🔍 Verifica se já existe tarefa com o mesmo título (case-insensitive)
+        const exists = tasks.some(t => t.title.trim().toLowerCase() === title.trim().toLowerCase());
+        if (exists) {
+            console.warn(`Tentativa de criar tarefa duplicada: ${title}`);
+            return res.status(400).json({ error: 'Já existe uma tarefa com esse título' });
+        }
+
         const newTask = {
             id: Date.now().toString(),
             title,

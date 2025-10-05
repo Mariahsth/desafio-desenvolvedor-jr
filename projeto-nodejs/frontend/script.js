@@ -36,13 +36,19 @@ async function addTask() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ title, dueDate })
         });
+
         if (response.ok) {
             document.getElementById('taskInput').value = '';
             document.getElementById('dueDateInput').value = '';
             loadTasks();
         } else {
             const error = await response.json();
-            alert(error.error || 'Erro ao adicionar tarefa');
+            // 🔹 Verificação de atividade duplicada
+            if (error.error === 'Já existe uma tarefa com esse título') {
+                alert('Não é possível criar tarefas com títulos repetidos!');
+            } else {
+                alert(error.error || 'Erro ao adicionar tarefa');
+            }
         }
     } catch (error) {
         alert('Erro ao adicionar tarefa');
