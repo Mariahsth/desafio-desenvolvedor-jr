@@ -501,3 +501,107 @@ input:-ms-input-placeholder { /* IE 10+ */
 input:-moz-placeholder { /* Firefox 18- */
     font-family: 'Poppins', sans-serif;
 }
+
+/* --- Toast --- */
+
+#toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 2000;
+}
+
+.toast {
+    margin-bottom: 10px;
+    padding: 15px 20px;
+    border-radius: var(--border-radius);
+    color: white;
+    font-weight: 600;
+    box-shadow: var(--shadow-light);
+    opacity: 0;
+    transform: translateX(100%);
+    transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+}
+
+.toast.show {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.toast.success { background-color: var(--success-color); }
+.toast.error, .toast.danger { background-color: var(--danger-color); }
+.toast.warning { background-color: var(--warning-color); color: var(--text-color); }
+
+/* --- Modal --- */
+
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 3000;
+    opacity: 1;
+    transition: opacity 0.3s ease-in-out;
+}
+
+.modal.hidden {
+    display: none;
+    opacity: 0;
+}
+
+.modal-content {
+    background: white;
+    padding: 30px;
+    border-radius: var(--border-radius);
+    width: 90%;
+    max-width: 400px;
+    box-shadow: var(--shadow-light);
+    text-align: center;
+}
+
+.modal-content h3 {
+    color: var(--danger-color);
+    border-bottom: 2px solid #eee;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+    font-size: 1.2em;
+}
+
+.modal-content p {
+    margin-bottom: 25px;
+    color: var(--text-color);
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+@media (max-width: 600px) {
+    #toast-container {
+        top: auto; 
+        bottom: 20px;
+        right: 0;
+        left: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center; 
+    }
+
+    .toast {
+        max-width: 90%; 
+        width: 300px; 
+        text-align: center;
+        transform: translateY(100px); 
+    }
+    
+    .toast.show {
+        transform: translateY(0);
+    }
+}

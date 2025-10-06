@@ -1,11 +1,52 @@
 const API_URL = 'http://localhost:3000/api';
 
-let allTasks = []; 
+let allTasks = [];
+let taskIdToDelete = null;
 
-document.addEventListener('DOMContentLoaded', loadTasks);
-document.getElementById('taskInput').addEventListener('keypress', e => {
-    if (e.key === 'Enter') addTask();
+document.addEventListener('DOMContentLoaded', () => {
+    loadTasks();
 });
+
+function showToast(message, type = 'success') {
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.textContent = message;
+    
+    container.appendChild(toast);
+
+    void toast.offsetWidth;     // Gatilho de reflow para a animação
+    toast.classList.add('show');
+
+    setTimeout(() => {
+        toast.classList.remove('show');
+        toast.addEventListener('transitionend', () => {
+            toast.remove();
+        }, { once: true });
+    }, 3000);
+}
+
+function showModal(id) {
+    taskIdToDelete = id;
+    const modal = document.getElementById('confirmation-modal');
+    const confirmButton = document.getElementById('modal-confirm-button');
+    confirmButton.onclick = () => {
+        confirmDeleteTask(id);
+    };
+    modal.classList.remove('hidden');
+}
+
+function hideModal() {
+    const modal = document.getElementById('confirmation-modal');
+    modal.classList.add('hidden');
+    taskIdToDelete = null;
+}
+
+async function confirmDeleteTask(taskIdToDelete) {
+    if (!taskIdToDelete) return;
+    hideModal();
+    await deleteTask(taskIdToDelete);
+}
 
 async function loadTasks() {
     try {
@@ -14,7 +55,7 @@ async function loadTasks() {
         displayTasks(allTasks);
     } catch (error) {
         console.error('Erro ao carregar tarefas:', error);
-        alert('Erro ao carregar tarefas. Verifique se o servidor está rodando.');
+        showToast('Erro ao carregar tarefas. Verifique se o servidor está rodando.', 'error');
     }
 }
 
@@ -22,7 +63,10 @@ async function addTask() {
     const title = document.getElementById('taskInput').value.trim();
     const dueDate = document.getElementById('dueDateInput').value;
 
-    if (!title) return alert('Digite uma tarefa!');
+    if (!title) {
+        showToast('Título é obrigatório!', 'warning');
+        return;
+    }
 
     if (dueDate) {
         const [year, month, day] = dueDate.split('-').map(Number);
@@ -33,9 +77,11 @@ async function addTask() {
         console.log("Data de hoje:", today);
         console.log("Data do prazo:", selected);
     
-        if (selected < today) return alert('A data de prazo não pode ser anterior a de hoje.');
+        if (selected < today) {
+            showToast('Prazo não pode ser anterior a hoje.', 'warning');
+            return
+        }
     }
-
     try {
         const response = await fetch(`${API_URL}/tasks`, {
             method: 'POST',
@@ -47,16 +93,17 @@ async function addTask() {
             document.getElementById('taskInput').value = '';
             document.getElementById('dueDateInput').value = '';
             loadTasks();
+            showToast('Tarefa adicionada com sucesso!', 'success');
         } else {
             const error = await response.json();
             if (error.error === 'Já existe uma tarefa com esse título') {
-                alert('Não é possível criar tarefas com títulos repetidos!');
+                showToast('Não é possível criar tarefas com títulos repetidos!', 'error');
             } else {
-                alert(error.error || 'Erro ao adicionar tarefa');
+                showToast('Erro ao adicionar tarefa', 'error');
             }
         }
     } catch (error) {
-        alert('Erro ao adicionar tarefa');
+        showToast('Erro ao adicionar tarefa', 'error');
     }
 }
 
@@ -69,15 +116,16 @@ async function toggleTask(id, completed) {
         });
 
         if (response.ok) {
-            loadTasks();
+            showToast(`Tarefa marcada como ${!completed ? 'concluída' : 'ativa'}!`, 'success');
+        } else {
+            showToast('Erro ao atualizar status da tarefa.', 'error');
         }
     } catch (error) {
-        alert('Erro ao atualizar tarefa');
+        showToast('Erro de conexão ao atualizar tarefa.', 'error');
     }
 }
 
 async function deleteTask(id) {
-    if (!confirm('Excluir esta tarefa?')) return;
     
     try {
         const response = await fetch(`${API_URL}/tasks/${id}`, {
@@ -86,9 +134,12 @@ async function deleteTask(id) {
         
         if (response.ok) {
             loadTasks();
+            showToast('Tarefa excluída com sucesso!', 'success');
+        } else {
+            showToast('Erro ao excluir tarefa.', 'error');
         }
     } catch (error) {
-        alert('Erro ao excluir tarefa');
+        showToast('Erro de conexão ao excluir tarefa.', 'error');
     }
 }
 
@@ -135,7 +186,7 @@ function renderTaskItem(task) {
         <div class="col-actions">
             <div class="task-actions">
                 <button class="btn-edit btn-small" onclick="editTask('${task.id}', '${task.title.replace(/'/g, "\\'")}', '${task.dueDate || ''}')">Editar</button>
-                <button class="btn-danger btn-small" onclick="deleteTask('${task.id}')">Excluir</button>
+                <button class="btn-danger btn-small" onclick="showModal('${task.id}')">Excluir</button>
             </div>
         </div>
     </li>`;
@@ -148,13 +199,10 @@ function formatDate(dateString) {
 
 function editTask(id, currentTitle, currentDueDate) {
     const textSpan = document.getElementById(`text-${id}`);
-    const dateSpan = document.getElementById(`date-${id}`);
     const li = textSpan.closest('.task-item'); 
-
     li.classList.add('editing');
 
     const dateValue = currentDueDate ? currentDueDate.split('T')[0] : '';
-
     const titleColumn = li.querySelector('.col-title');
     titleColumn.innerHTML = `
         <input type="text" id="edit-title-${id}" value="${currentTitle}">
@@ -162,17 +210,15 @@ function editTask(id, currentTitle, currentDueDate) {
         <div class="task-actions">
             <button class="btn-primary btn-small" onclick="saveEdit('${id}')">Salvar</button>
             <button class="btn-secondary btn-small" onclick="cancelEdit(this, '${currentTitle.replace(/'/g, "\\'")}', '${currentDueDate || ''}')">Cancelar</button>
-
         </div>
     `;
-
 }
 
 async function saveEdit(id) {
     const newTitle = document.getElementById(`edit-title-${id}`).value.trim();
     const newDueDate = document.getElementById(`edit-date-${id}`).value;
 
-    if (!newTitle) return alert('O título não pode ser vazio.');
+    if (!newTitle) return showToast('O título não pode ser vazio.', 'warning');
 
     if (newDueDate) {
         const today = new Date();
@@ -180,9 +226,7 @@ async function saveEdit(id) {
         const selected = new Date(year, month - 1, day); 
         today.setHours(0, 0, 0, 0);
         selected.setHours(0, 0, 0, 0);
-        console.log("Data de hoje:", today);
-        console.log("Data do prazo:", selected);
-        if (selected < today) return alert('A data de prazo não pode ser anterior a de hoje.');
+        if (selected < today) return showToast('A data de prazo não pode ser anterior a de hoje.', 'warning');
     }
 
     const res = await fetch(`${API_URL}/tasks/${id}`, {
@@ -191,16 +235,17 @@ async function saveEdit(id) {
         body: JSON.stringify({ title: newTitle, dueDate: newDueDate || null })
     });
 
-    if (res.ok) loadTasks();
-    else {
+    if (res.ok) {
+        loadTasks();
+        showToast('Tarefa editada com sucesso!', 'success');
+    } else {
         const error = await res.json();
-        alert(error.error || 'Erro ao salvar edição');
+        showToast(error.error || 'Erro ao salvar edição', 'error');
     }
 }
 
 function cancelEdit(button, originalTitle, originalDueDate) {
     const li = button.closest('.task-item'); 
-
     const titleColumn = li.querySelector('.col-title');
     titleColumn.innerHTML = `<span class="task-text" id="text-${li.dataset.id}">${originalTitle}</span>`;
 
@@ -216,7 +261,6 @@ function cancelEdit(button, originalTitle, originalDueDate) {
             <button class="btn-danger btn-small" onclick="deleteTask('${li.dataset.id}')">Excluir</button>
         </div>
     `;
-
     li.classList.remove('editing');
 }
 
