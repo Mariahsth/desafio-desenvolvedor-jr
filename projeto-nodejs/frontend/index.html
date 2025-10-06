@@ -6,7 +6,6 @@
     <title>Gerenciador de Tarefas</title>
     <link rel="stylesheet" href="style.css" />
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet" />
-
 </head>
 <body>
     <div class="container">
@@ -27,52 +26,62 @@
         </div>
 
         <div class="task-list-section">
-            <h2>Ativas</h2>
-            <div class="filters">
-                <h3>Filtros de Pesquisa:</h3>
-                <div class="filter-controls">
-                    <div class="input-group filter-date-group">
-                        <label for="filterStart">Data início:</label>
-                        <input type="date" id="filterStart" />
-                    </div>
-                    <div class="input-group filter-date-group">
-                        <label for="filterEnd">Data fim:</label>
-                        <input type="date" id="filterEnd" />
-                    </div>
-                    <div class="input-group filter-title-group">
-                        <label for="searchTitle">Título:</label>
-                        <input type="text" id="searchTitle" placeholder="Pesquisar por título..." />
-                    </div>
-                </div>
-                <div class="filter-actions">
-                    <button onclick="applyFilters()" class="btn-secondary">Aplicar filtros</button>
-                    <button onclick="clearFilters()" class="btn-secondary">Limpar filtros</button>
-                </div>
+            <div class="section-header">
+                <h2>Ativas</h2>
+                <button class="collapse-btn" onclick="toggleSection('active')">Recolher ▲</button>
             </div>
-
-            <div class="tasks-scroll-wrapper">
-                <div class="task-header">
-                    <div class="col-checkbox">Concluído</div>
-                    <div class="col-title">Título</div>
-                    <div class="col-due-date">Prazo</div>
-                    <div class="col-status">Status</div>
-                    <div class="col-actions">Ações</div>
+            <div id="section-active" class="section-content">
+                <div class="filters">
+                    <h3>Filtros de Pesquisa:</h3>
+                    <div class="filter-controls">
+                        <div class="input-group filter-date-group">
+                            <label for="filterStart">Data início:</label>
+                            <input type="date" id="filterStart" />
+                        </div>
+                        <div class="input-group filter-date-group">
+                            <label for="filterEnd">Data fim:</label>
+                            <input type="date" id="filterEnd" />
+                        </div>
+                        <div class="input-group filter-title-group">
+                            <label for="searchTitle">Título:</label>
+                            <input type="text" id="searchTitle" placeholder="Pesquisar por título..." />
+                        </div>
+                    </div>
+                    <div class="filter-actions">
+                        <button onclick="applyFilters()" class="btn-secondary">Aplicar filtros</button>
+                        <button onclick="clearFilters()" class="btn-secondary">Limpar filtros</button>
+                    </div>
                 </div>
-                <ul id="tasksListActive" class="tasks-list-ul"></ul>
+
+                <div class="tasks-scroll-wrapper">
+                    <div class="task-header">
+                        <div class="col-checkbox">Concluído</div>
+                        <div class="col-title">Título</div>
+                        <div class="col-due-date">Prazo</div>
+                        <div class="col-status">Status</div>
+                        <div class="col-actions">Ações</div>
+                    </div>
+                    <ul id="tasksListActive" class="tasks-list-ul"></ul>
+                </div>
             </div>
         </div>
 
         <div class="task-list-section">
-            <h2>Concluídas</h2>
-            <div class="tasks-scroll-wrapper">
-                <div class="task-header">
-                    <div class="col-checkbox">Concluído</div>
-                    <div class="col-title">Título</div>
-                    <div class="col-due-date">Prazo</div>
-                    <div class="col-status">Status</div>
-                    <div class="col-actions">Ações</div>
+            <div class="section-header">
+                <h2>Concluídas</h2>
+                <button class="collapse-btn" onclick="toggleSection('completed')">Recolher ▲</button>
+            </div>
+            <div id="section-completed" class="section-content">
+                <div class="tasks-scroll-wrapper">
+                    <div class="task-header">
+                        <div class="col-checkbox">Concluído</div>
+                        <div class="col-title">Título</div>
+                        <div class="col-due-date">Prazo</div>
+                        <div class="col-status">Status</div>
+                        <div class="col-actions">Ações</div>
+                    </div>
+                    <ul id="tasksListCompleted" class="tasks-list-ul"></ul>
                 </div>
-                <ul id="tasksListCompleted" class="tasks-list-ul"></ul>
             </div>
         </div>
     </div>

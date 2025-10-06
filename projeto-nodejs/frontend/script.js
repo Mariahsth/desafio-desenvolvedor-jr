@@ -7,6 +7,15 @@ document.addEventListener('DOMContentLoaded', () => {
     loadTasks();
 });
 
+function toggleSection(section) {
+    const sectionEl = document.getElementById(`section-${section}`);
+    const button = sectionEl.previousElementSibling.querySelector('.collapse-btn');
+    
+    const isHidden = sectionEl.classList.toggle('collapsed');
+    button.textContent = isHidden ? 'Expandir ▼' : 'Recolher ▲';
+}
+
+
 function showToast(message, type = 'success') {
     const container = document.getElementById('toast-container');
     const toast = document.createElement('div');
