@@ -2,6 +2,7 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const cors = require('cors');
+const taskRoutes = require('./routes/taskRoutes');
 
 const app = express();
 const PORT = 3000;
@@ -14,169 +15,12 @@ if (!fs.existsSync(DATA_FILE)) {
     fs.writeFileSync(DATA_FILE, JSON.stringify([]));
 }
 
-// GET - Listar tarefas
-app.get('/api/tasks', (req, res) => {
-    try {
-        const data = fs.readFileSync(DATA_FILE, 'utf8');
-        const tasks = JSON.parse(data);
-
-        // Atualiza status dinamicamente antes de enviar
-        const updatedTasks = tasks.map(task => {
-            if (!task.completed && task.dueDate) {
-                const today = new Date();
-                const [year, month, day] = task.dueDate.split('-').map(Number);
-                const due = new Date(year, month - 1, day); 
-                today.setHours(0, 0, 0, 0);
-                due.setHours(0, 0, 0, 0);
-                task.status = due < today ? 'Atrasado' : 'Dentro do prazo';
-            } else if (task.completed) {
-                task.status = 'Concluído';
-            } else {
-                task.status = 'Sem prazo';
-            }
-            return task;
-        });
-
-        res.json(updatedTasks);
-    } catch (error) {
-        console.error('Erro ao buscar tarefas:', error);
-        res.status(500).json({ error: 'Erro ao carregar tarefas' });
-    }
+app.use((req, res, next) => {
+    req.dataFile = DATA_FILE;
+    next();
 });
 
-// POST - Criar tarefa
-app.post('/api/tasks', (req, res) => {
-    console.log('POST /api/tasks chamado com body:', req.body);
-    try {
-        const { title, dueDate } = req.body;
-
-        if (!title) {
-            console.warn('Tentativa de criar tarefa sem título');
-            return res.status(400).json({ error: 'Título é obrigatório' });
-        }
-
-        if (dueDate) {
-            const today = new Date();
-            const [year, month, day] = dueDate.split('-').map(Number);
-            const selected = new Date(year, month - 1, day); 
-            today.setHours(0, 0, 0, 0);
-            selected.setHours(0, 0, 0, 0);
-            console.log("Data de hoje:", today);
-            console.log("Data do prazo:", dueDate);
-            if (selected < today) {
-                return res.status(400).json({ error: 'A data de prazo não pode ser anterior a hoje' });
-            }
-        }
-
-        const data = fs.readFileSync(DATA_FILE, 'utf8');
-        const tasks = JSON.parse(data);
-
-        // 🔍 Verifica se já existe tarefa com o mesmo título (case-insensitive)
-        const exists = tasks.some(t => t.title.trim().toLowerCase() === title.trim().toLowerCase());
-        if (exists) {
-            console.warn(`Tentativa de criar tarefa duplicada: ${title}`);
-            return res.status(400).json({ error: 'Já existe uma tarefa com esse título' });
-        }
-
-        const newTask = {
-            id: Date.now().toString(),
-            title,
-            completed: false,
-            dueDate: dueDate || null,
-            status: dueDate ? 'Dentro do prazo' : 'Sem prazo'
-        };
-
-        tasks.push(newTask);
-        fs.writeFileSync(DATA_FILE, JSON.stringify(tasks, null, 2));
-        console.log('Tarefa criada:', newTask);
-        res.status(201).json(newTask);
-    } catch (error) {
-        console.error('Erro ao criar tarefa:', error);
-        res.status(500).json({ error: 'Erro ao criar tarefa' });
-    }
-});
-
-// PUT - Atualizar tarefa
-app.put('/api/tasks/:id', (req, res) => {
-    console.log(`PUT /api/tasks/${req.params.id} chamado com body:`, req.body);
-    try {
-        const taskId = req.params.id;
-        const { completed, title, dueDate } = req.body;
-
-        const data = fs.readFileSync(DATA_FILE, 'utf8');
-        const tasks = JSON.parse(data);
-        const taskIndex = tasks.findIndex(task => task.id === taskId);
-
-        if (taskIndex === -1) {
-            console.warn(`Tarefa ${taskId} não encontrada`);
-            return res.status(404).json({ error: 'Tarefa não encontrada' });
-        }
-
-        if (typeof completed === 'boolean') tasks[taskIndex].completed = completed;
-        if (title) tasks[taskIndex].title = title;
-
-        if (dueDate !== undefined) {
-            if (dueDate) {
-                const today = new Date();
-                const [year, month, day] = dueDate.split('-').map(Number);
-                const selected = new Date(year, month - 1, day); 
-                today.setHours(0, 0, 0, 0);
-                selected.setHours(0, 0, 0, 0);
-                if (selected < today) {
-                    return res.status(400).json({ error: 'A data de prazo não pode ser anterior a hoje' });
-                }
-                tasks[taskIndex].dueDate = dueDate;
-            } else {
-                tasks[taskIndex].dueDate = null;
-            }
-        }
-
-        // Atualiza status
-        const t = tasks[taskIndex];
-        if (t.completed) {
-            t.status = 'Concluído';
-        } else if (t.dueDate) {
-            const today = new Date();
-            const [year, month, day] = t.dueDate.split('-').map(Number);
-            const due = new Date(year, month - 1, day); 
-            today.setHours(0, 0, 0, 0);
-            due.setHours(0, 0, 0, 0);
-            t.status = due < today ? 'Atrasado' : 'Dentro do prazo';
-        } else {
-            t.status = 'Sem prazo';
-        }
-
-        fs.writeFileSync(DATA_FILE, JSON.stringify(tasks, null, 2));
-        console.log(`Tarefa ${taskId} atualizada para completed=${completed}`);
-        res.json(tasks[taskIndex]);
-    } catch (error) {
-        console.error(`Erro ao atualizar tarefa em PUT /api/tasks/${req.params.id}:`, error);
-        res.status(500).json({ error: 'Erro ao atualizar tarefa' });
-    }
-});
-
-// DELETE - Remover tarefa
-app.delete('/api/tasks/:id', (req, res) => {
-    console.log(`DELETE /api/tasks/${req.params.id} chamado`);
-    try {
-        const taskId = req.params.id;
-        const data = fs.readFileSync(DATA_FILE, 'utf8');
-        const tasks = JSON.parse(data);
-        const filteredTasks = tasks.filter(task => task.id !== taskId);
-
-        if (filteredTasks.length === tasks.length) {
-            console.warn(`Tentativa de deletar tarefa inexistente: ${taskId}`);
-            return res.status(404).json({ error: 'Tarefa não encontrada' });
-        }
-
-        fs.writeFileSync(DATA_FILE, JSON.stringify(filteredTasks, null, 2));
-        console.log(`Tarefa ${taskId} removida`);
-        res.json({ message: 'Tarefa removida' });
-    } catch (error) {
-        console.error(`Erro ao deletar tarefa em DELETE /api/tasks/${req.params.id}:`, error);
-        res.status(500).json({ error: 'Erro ao remover tarefa' });
-    }
-});
+app.use('/api/tasks', taskRoutes);
 
 app.listen(PORT, () => {
     console.log(`Servidor rodando na porta ${PORT}`);
