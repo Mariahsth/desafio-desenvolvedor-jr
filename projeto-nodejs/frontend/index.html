@@ -42,10 +42,20 @@
                             <label for="filterEnd">Data fim:</label>
                             <input type="date" id="filterEnd" />
                         </div>
+                        <div class="input-group filter-status-group">
+                            <label for="filterStatus">Status:</label>
+                            <select id="filterStatus">
+                                <option value="">Todos</option>
+                                <option value="Atrasado">Atrasado</option>
+                                <option value="Dentro do prazo">Dentro do prazo</option>
+                                <option value="Sem prazo">Sem prazo</option>
+                            </select>
+                        </div>
                         <div class="input-group filter-title-group">
                             <label for="searchTitle">Título:</label>
                             <input type="text" id="searchTitle" placeholder="Pesquisar por título..." />
                         </div>
+                        
                     </div>
                     <div class="filter-actions">
                         <button  class="btn-secondary">Aplicar filtros</button>

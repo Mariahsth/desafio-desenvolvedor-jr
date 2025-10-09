@@ -168,6 +168,7 @@ export function applyFilters() {
     const startDateValue = document.getElementById('filterStart').value;
     const endDateValue = document.getElementById('filterEnd').value;
     const searchTitleValue = document.getElementById('searchTitle').value.trim().toLowerCase();
+    const statusValue = document.getElementById('filterStatus').value;
 
     let filtered = allTasks.filter(t => !t.completed); 
 
@@ -187,6 +188,10 @@ export function applyFilters() {
         filtered = filtered.filter(t => t.title.toLowerCase().includes(searchTitleValue));
     }
 
+    if (statusValue) {
+        filtered = filtered.filter(t => t.status === statusValue);
+    }
+
     displayTasks([...filtered, ...allTasks.filter(t => t.completed)]);
 }
 
@@ -194,6 +199,7 @@ export function clearFilters() {
   document.getElementById('filterStart').value = '';
   document.getElementById('filterEnd').value = '';
   document.getElementById('searchTitle').value = '';
+  document.getElementById('filterStatus').value = '';
   displayTasks(allTasks);
 }
 
