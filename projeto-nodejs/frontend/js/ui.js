@@ -7,6 +7,8 @@ const toastContainer = document.getElementById('toast-container');
 const modal = document.getElementById('confirmation-modal');
 const modalConfirmBtn = document.getElementById('modal-confirm-button');
 
+
+
 let allTasks = [];
 let taskToDelete = null;
 
@@ -20,7 +22,8 @@ document.querySelectorAll('.collapse-btn').forEach(btn => {
   document.querySelector('.filter-actions .btn-secondary:nth-child(1)')?.addEventListener('click', applyFilters);
   document.querySelector('.filter-actions .btn-secondary:nth-child(2)')?.addEventListener('click', clearFilters);
   document.querySelector('.modal .btn-secondary')?.addEventListener('click', hideModal);  
-
+  document.getElementById('sort-title').addEventListener('click', () => handleSort('title'));
+  document.getElementById('sort-date').addEventListener('click', () => handleSort('dueDate'));
 
 /* ============  RENDERIZAÇÃO ============ */
 export function renderTasks(tasks) {
@@ -216,3 +219,48 @@ window.addTask = async function() {
   titleInput.value = '';
   dueDateInput.value = '';
 };
+
+/* ============  ORDENAR COLUNAS ============ */
+
+let sortConfig = { key: null, ascending: true };
+
+function sortTasks(tasks, key) {
+  return tasks.slice().sort((a, b) => {
+    if (!a[key]) return 1; 
+    if (!b[key]) return -1;
+
+    if (key === 'title') {
+      return sortConfig.ascending
+        ? a.title.localeCompare(b.title)
+        : b.title.localeCompare(a.title);
+    } else if (key === 'dueDate') {
+      return sortConfig.ascending
+        ? new Date(a.dueDate) - new Date(b.dueDate)
+        : new Date(b.dueDate) - new Date(a.dueDate);
+    }
+    return 0;
+  });
+}
+
+function handleSort(key) {
+  if (sortConfig.key === key) {
+    sortConfig.ascending = !sortConfig.ascending; 
+  } else {
+    sortConfig.key = key;
+    sortConfig.ascending = true;
+  }
+
+  const sortedTasks = sortTasks(allTasks, key);
+  displayTasks(sortedTasks);
+
+  const titleHeader = document.getElementById('sort-title');
+  const dateHeader = document.getElementById('sort-date');
+
+  if (key === 'title') {
+    titleHeader.textContent = `Título ${sortConfig.ascending ? '▲' : '▼'}`;
+    dateHeader.textContent = 'Prazo ▼'; 
+  } else if (key === 'dueDate') {
+    dateHeader.textContent = `Prazo ${sortConfig.ascending ? '▲' : '▼'}`;
+    titleHeader.textContent = 'Título ▼'; 
+  }
+}
