@@ -8,6 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet" />
 </head>
 <body>
+    <div id="toast-container"></div>
     <div class="container">
         <h1>Gerenciador de Tarefas</h1>
 
@@ -21,14 +22,14 @@
                     <label for="dueDateInput">Prazo de conclusão:</label>
                     <input type="date" id="dueDateInput" title="Prazo da tarefa" />
                 </div>
-                <button type="button" class="btn-primary" onclick="addTask()">Adicionar</button>
+                <button type="button" class="btn-primary" id="add-task-btn" onclick="addTask()">Adicionar</button>
             </div>
         </div>
 
         <div class="task-list-section">
             <div class="section-header">
                 <h2>Ativas</h2>
-                <button class="collapse-btn" >Recolher ▲</button>
+                <button type='button' class="collapse-btn" >Recolher ▲</button>
             </div>
             <div id="section-active" class="section-content">
                 <div class="filters">
@@ -58,8 +59,8 @@
                         
                     </div>
                     <div class="filter-actions">
-                        <button  class="btn-secondary">Aplicar filtros</button>
-                        <button  class="btn-secondary">Limpar filtros</button>
+                        <button type="button" class="btn-secondary">Aplicar filtros</button>
+                        <button type="button" class="btn-secondary">Limpar filtros</button>
                     </div>
                 </div>
 
@@ -79,7 +80,7 @@
         <div class="task-list-section">
             <div class="section-header">
                 <h2>Concluídas</h2>
-                <button class="collapse-btn" >Recolher ▲</button>
+                <button type="button" class="collapse-btn" >Recolher ▲</button>
             </div>
             <div id="section-completed" class="section-content">
                 <div class="tasks-scroll-wrapper">
@@ -96,15 +97,15 @@
         </div>
     </div>
 
-    <div id="toast-container"></div>
+
 
     <div id="confirmation-modal" class="modal hidden">
         <div class="modal-content">
             <h3>Confirmação de Exclusão</h3>
             <p>Tem certeza de que deseja <strong>excluir permanentemente</strong> esta tarefa?</p>
             <div class="modal-actions">
-                <button class="btn-secondary" >Cancelar</button>
-                <button class="btn-danger" id="modal-confirm-button">Excluir</button>
+                <button type="button" class="btn-secondary" >Cancelar</button>
+                <button type="button" class="btn-danger" id="modal-confirm-button">Excluir</button>
             </div>
         </div>
     </div>

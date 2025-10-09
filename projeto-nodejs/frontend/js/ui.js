@@ -66,8 +66,8 @@ function renderTaskItem(task) {
     </div>
     <div class="col-actions">
       <div class="task-actions">
-        <button class="btn-edit btn-small" onclick="editTask('${task.id}', '${task.title.replace(/'/g, "\\'")}', '${task.dueDate || ''}')">Editar</button>
-        <button class="btn-danger btn-small" onclick="showModal('${task.id}')">Excluir</button>
+        <button type="button" class="btn-edit btn-small" onclick="editTask('${task.id}', '${task.title.replace(/'/g, "\\'")}', '${task.dueDate || ''}')">Editar</button>
+        <button type="button" class="btn-danger btn-small" onclick="showModal('${task.id}')">Excluir</button>
       </div>
     </div>
   </li>`;
@@ -89,8 +89,8 @@ window.editTask = function(id, currentTitle, currentDueDate) {
     <input type="text" id="edit-title-${id}" value="${currentTitle}">
     <input type="date" id="edit-date-${id}" value="${dateValue}">
     <div class="task-actions">
-      <button class="btn-primary btn-small" onclick="saveEdit('${id}')">Salvar</button>
-      <button class="btn-secondary btn-small" onclick="cancelEdit(this, '${currentTitle.replace(/'/g, "\\'")}', '${currentDueDate || ''}')">Cancelar</button>
+      <button type="button" class="btn-primary btn-small" onclick="saveEdit('${id}')">Salvar</button>
+      <button type="button" class="btn-secondary btn-small" onclick="cancelEdit(this, '${currentTitle.replace(/'/g, "\\'")}', '${currentDueDate || ''}')">Cancelar</button>
     </div>
   `;
 };
@@ -124,8 +124,8 @@ window.cancelEdit = function(button, originalTitle, originalDueDate) {
   const actionsColumn = li.querySelector('.col-actions');
   actionsColumn.innerHTML = `
     <div class="task-actions">
-      <button class="btn-edit btn-small" onclick="editTask('${li.dataset.id}', '${originalTitle.replace(/'/g, "\\'")}', '${originalDueDate || ''}')">Editar</button>
-      <button class="btn-danger btn-small" onclick="showModal('${li.dataset.id}')">Excluir</button>
+      <button type="button"class="btn-edit btn-small" onclick="editTask('${li.dataset.id}', '${originalTitle.replace(/'/g, "\\'")}', '${originalDueDate || ''}')">Editar</button>
+      <button type="button" class="btn-danger btn-small" onclick="showModal('${li.dataset.id}')">Excluir</button>
     </div>
   `;
   li.classList.remove('editing');
